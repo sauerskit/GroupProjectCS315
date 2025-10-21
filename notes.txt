@@ -1,1 +1,3 @@
 BWT → MTF → RLE → Huffman
+
+reversing BWT: https://www.cs.jhu.edu/~langmea/resources/lecture_notes/bwt/225_bwt_reverse.pdf 
