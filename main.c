@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "bwt.h"
+#include "mtf.h"
+#include "rle.h"
+#include "huffman.h"
 
 #define BLOCK_SIZE ( 900 * 1024 )
 
@@ -34,6 +38,11 @@ int main( int argc, char *argv[] ) {
     
 
     }
+
+    printBWT( );
+    printMTF( );
+    printRLE( );
+    printHuffman( );
 
     free( block );
     fclose( inputFile );
