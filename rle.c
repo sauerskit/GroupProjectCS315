@@ -4,16 +4,19 @@
 #include "compress.h"
 #include "rle.h"
 
+#define RUNA 256
+#define RUNB 257
+
 size_t RLE( const unsigned char *input,
-               unsigned char *output,
-               size_t        len ) {
+                  symbol_t      *output,
+                  size_t        len ) {
 
     printf( "RLE\n\n" );
 
     size_t size = 0;
 
-    for( int i = 0; i < len; i++ ) {
-        
+    for( size_t i = 0; i < len; i++ ) {
+        //output[i] = (symbol_t)input[i];
     }
 
     return size;

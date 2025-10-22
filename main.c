@@ -34,15 +34,22 @@ int main( int argc, char *argv[] ) {
 
     // bufferA and bufferB so that I can reuse buffers for input/output after
     // each transform
-    unsigned char *bufferA = malloc( BLOCK_SIZE * sizeof( symbol_t ) );
-    // size of buffer in int16's because symbolic over byte compression
+    unsigned char *bufferA = malloc( BLOCK_SIZE );
 
     if( !bufferA ) {
         perror( "malloc" );
         return 1;
     }
 
-    unsigned char *bufferB = malloc( BLOCK_SIZE * sizeof( symbol_t ) );
+    unsigned char *bufferB = malloc( BLOCK_SIZE );
+
+    if( !bufferB ) {
+        perror( "malloc" );
+        return 1;
+    }
+
+    // size of buffer in int16's because symbolic over byte compression
+    symbol_t *symBuffer = malloc( BLOCK_SIZE * sizeof( symbol_t ) );
 
     if( !bufferB ) {
         perror( "malloc" );
@@ -50,7 +57,7 @@ int main( int argc, char *argv[] ) {
     }
 
     BWTResult bwtRes;
-    size_t read;  // 8 bytes usually
+    size_t read;  // size_t is 8 bytes usually
     size_t blockNumber = 0;
 
     
@@ -64,23 +71,24 @@ int main( int argc, char *argv[] ) {
                                                     read );
 
                 size_t sizeA = BWT( bufferA, bufferB, read, &bwtRes );
-                // printf( "Primary index: %zu\n", bwtRes.primaryIndex );
+                printf( "Primary index: %zu\n", bwtRes.primaryIndex );
 
-                // for( size_t i = 0; i < read; i++ ) {
-                    //putchar( bufferB[i] );
-                //}
-                //putchar( '\n' );
-                //putchar( '\n' );
+                for( size_t i = 0; i < read; i++ ) {
+                    putchar( bufferB[i] );
+                }
+                putchar( '\n' );
+                putchar( '\n' );
 
 
                 size_t sizeB = MTF( bufferB, bufferA, sizeA );
 
 
-                size_t sizeC = RLE( bufferA, bufferB, sizeB );
+                size_t sizeC = RLE( bufferA, symBuffer, sizeB );
+
                 size_t sizeD = Huffman( );
 
                 fwrite( &bwtRes.primaryIndex, sizeof( size_t ), 1, outputFile );
-                fwrite( bufferB, 1, sizeC, outputFile );
+                fwrite( bufferA, 1, sizeB, outputFile );
     
             }
         
