@@ -1,6 +1,6 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 
-int printHuffman( );
+size_t Huffman( );
 
 #endif

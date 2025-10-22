@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "compress.h"
 #include "huffman.h"
 
-int printHuffman( ) {
+size_t Huffman( ) {
     printf("Huffman\n\n");
     return 0;
 }

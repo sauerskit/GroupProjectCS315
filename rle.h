@@ -1,6 +1,8 @@
 #ifndef RLE_H
 #define RLE_H
 
-int printRLE( );
+size_t RLE( const unsigned char *input,
+                  unsigned char *output,
+                  size_t        len );
 
 #endif

@@ -1,3 +1,32 @@
+bzip2 style
 BWT → MTF → RLE → Huffman
 
-reversing BWT: https://www.cs.jhu.edu/~langmea/resources/lecture_notes/bwt/225_bwt_reverse.pdf 
+bwt:
+
+https://www.cs.jhu.edu/~langmea/resources/lecture_notes/bwt/225_bwt_reverse.pdf
+https://www.youtube.com/watch?v=ni_w-rdItG8
+https://linux.die.net/man/3/qsort_r
+
+Explaination for SuffixArray and qsort_r!!!!
+classic example: b a n a n a
+qsort_r(
+    suffixArr = [0, 1, 2, 3, 4, 5],
+    nitems = 6
+    size = 4 bytes ( or sizeof(int) )
+    compar = cmpSuffix,
+    arg = block ( which is "banana" )
+)
+
+INSIDE qsort_r:
+calls cmpSuffix(suffixArr[0], suffixArr[3], block)
+    a = suffixArr[0] (0)
+    b = suffixArr[3] (3)
+    ctx (context) = "banana" (or whatever the block is)
+    compares suffixes:
+        "banana" vs "ana"
+        this will return a negative value because 'b' < 'a' is not true
+process repeats until suffixArr is sorted alphabetically
+
+NOTE: For suffix array speed and size complexity, possibly look at DivSufSort in the future
+
+TODO: FIGURE OUT WEIRD SYMBOL_T STUFF, WHAT SHOULD BE A BYTE, WHAT SHOULD BE A SYMBOL!!!!
