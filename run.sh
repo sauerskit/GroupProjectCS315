@@ -1,8 +1,6 @@
 #! /bin/bash
+rm output.zip
 
-make
+make && echo -e "\n==============================\nExecution:\n" && ./compression testFiles/asv.txt 1
 
-echo -e "\n=============================="
-echo -e "Execution:\n"
-
-./compression banana.txt 1
+ls -l output.zip | awk '{print $5}'

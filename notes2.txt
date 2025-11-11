@@ -1,0 +1,61 @@
+bzip2 style
+BWT → MTF → RLE → Huffman
+
+bwt:
+
+https://www.cs.jhu.edu/~langmea/resources/lecture_notes/bwt/225_bwt_reverse.pdf
+https://www.youtube.com/watch?v=ni_w-rdItG8
+https://linux.die.net/man/3/qsort_r
+
+Explaination for SuffixArray and qsort_r!!!!
+classic example: b a n a n a
+qsort_r(
+    suffixArr = [0, 1, 2, 3, 4, 5],
+    nitems = 6
+    size = 4 bytes ( or sizeof(int) )
+    compar = cmpSuffix,
+    arg = block ( which is "banana" )
+)
+
+INSIDE qsort_r:
+calls cmpSuffix(suffixArr[0], suffixArr[3], block)
+    a = suffixArr[0] (0)
+    b = suffixArr[3] (3)
+    ctx (context) = "banana" (or whatever the block is)
+    compares suffixes:
+        "banana" vs "ana"
+        this will return a negative value because 'b' < 'a' is not true
+process repeats until suffixArr is sorted alphabetically
+
+NOTE: For suffix array speed and size complexity, possibly look at DivSufSort in the future
+
+TODO: FIGURE OUT WEIRD SYMBOL_T STUFF, WHAT SHOULD BE A BYTE, WHAT SHOULD BE A SYMBOL!!!!
+
+
+truncate -s -1 banana.txt 
+
+Huffman
+
+original huffman output:
+
+huffman table
+99 257 256 110 258 
+writing huffman encoded data 
+0001001110100001
+
+Final Structure:
+
+Block: 
+bwt primary index (find out size)
+size of huffman table (including runa runb and end-of-block)
+runa runb magic byte
+huffman table (bytes)
+
+
+4568028 testFiles/asv.txt
+1450900 300 block size
+2326303 900 block size
+1957418 700 block size
+1380797 500 block size
+1415935 400 block size
+1632565 100 block size

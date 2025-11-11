@@ -56,7 +56,7 @@ static int cmpSuffix( const void *lhs, const void *rhs, void *context ) {
 size_t BWT( const unsigned char *input, 
                unsigned char *output, 
                size_t        len, 
-               BWTResult     *res ) {
+               blockMeta     *res ) {
 
     printf( "BWT\n" );
 

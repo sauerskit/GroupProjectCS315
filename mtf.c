@@ -22,7 +22,7 @@ size_t MTF( const unsigned char *input,
         for( index = 0; list[index] != input[i]; index++ );
         
         symbol = list[index];
-        printf( "%d ", index );
+        //printf( "%d ", index );
         output[i] = index;
         size++;
 

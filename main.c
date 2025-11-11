@@ -7,7 +7,7 @@
 #include "rle.h"
 #include "huffman.h"
 
-#define BLOCK_SIZE ( 500 * 1024 ) // 500 kilobyte block sizes
+#define BLOCK_SIZE ( 500 * 1024 ) // 300 kilobyte block sizes
 
 int main( int argc, char *argv[] ) {
     
@@ -25,16 +25,16 @@ int main( int argc, char *argv[] ) {
     }
 
     FILE *inputFile  = fopen( argv[1], "rb" );
-    FILE *outputFile = fopen( "output.bwt", "wb" ); // .azip Addison ZIP
+    //FILE *outputFile = fopen( "output.bwt", "wb" ); // .azip Addison ZIP
 
-    if( !inputFile ) {
-        perror( "fopen" );
-        return 1;
-    }
+    //if( !inputFile ) {
+        //perror( "fopen" );        TODO: CHANGE THIS
+        //return 1;
+    //}
 
     // bufferA and bufferB so that I can reuse buffers for input/output after
     // each transform
-    unsigned char *bufferA = malloc( BLOCK_SIZE );
+    unsigned char *bufferA = calloc( 1, BLOCK_SIZE );
 
     if( !bufferA ) {
         perror( "malloc" );
@@ -42,7 +42,6 @@ int main( int argc, char *argv[] ) {
     }
 
     unsigned char *bufferB = malloc( BLOCK_SIZE );
-
     if( !bufferB ) {
         perror( "malloc" );
         return 1;
@@ -56,7 +55,9 @@ int main( int argc, char *argv[] ) {
         return 1;
     }
 
-    BWTResult bwtRes;
+    //BWTResult bwtRes;
+    blockMeta *meta = malloc( sizeof( blockMeta ) ); // set all values to 0
+
     size_t read;  // size_t is 8 bytes usually
     size_t blockNumber = 0;
 
@@ -70,11 +71,11 @@ int main( int argc, char *argv[] ) {
                                                     blockNumber, 
                                                     read );
 
-                size_t sizeA = BWT( bufferA, bufferB, read, &bwtRes );
-                printf( "Primary index: %zu\n", bwtRes.primaryIndex );
+                size_t sizeA = BWT( bufferA, bufferB, read, meta );
+                printf( "Primary index: %zu\n", meta->primaryIndex );
 
                 for( size_t i = 0; i < read; i++ ) {
-                    putchar( bufferB[i] );
+                    //putchar( bufferB[i] );
                 }
                 putchar( '\n' );
                 putchar( '\n' );
@@ -82,14 +83,15 @@ int main( int argc, char *argv[] ) {
 
                 size_t sizeB = MTF( bufferB, bufferA, sizeA );
 
-
                 size_t sizeC = RLE( bufferA, symBuffer, sizeB );
 
-                size_t sizeD = Huffman( );
+                size_t sizeD = Huffman( symBuffer, bufferB, sizeC, meta );
+                //size_t sizeD = Huffman( symBuffer, bufferB, bufferA, sizeC, meta ); //!!! bufferA HAS OUTPUT 
 
-                fwrite( &bwtRes.primaryIndex, sizeof( size_t ), 1, outputFile );
-                fwrite( bufferA, 1, sizeB, outputFile );
+                //fwrite( &meta->primaryIndex, sizeof( size_t ), 1, outputFile );
+                //fwrite( bufferA, 1, sizeB, outputFile );
     
+                blockNumber++;
             }
         
             break;
@@ -97,16 +99,38 @@ int main( int argc, char *argv[] ) {
         case 2:
             
             printf( "Decompressing!\n" );
+
+
+            while( ( read = fread( bufferA, 1, BLOCK_SIZE, inputFile ) ) > 0 ) {
+                printf( "processing block %zu with %zu bytes\n", 
+                                                    blockNumber, 
+                                                    read );
+
+                //size_t sizeD = Huffman( symBuffer, bufferB, sizeC, meta );
+                //size_t sizeC = RLE( bufferA, symBuffer, sizeB );
+
+                //size_t sizeA = BWT( bufferA, bufferB, read, meta );
+
+                //size_t sizeB = MTF( bufferB, bufferA, sizeA );
+                //printf( "Primary index: %zu\n", meta->primaryIndex );
+
+                //size_t sizeD = Huffman( symBuffer, bufferB, bufferA, sizeC, meta ); //!!! bufferA HAS OUTPUT 
+
+                //fwrite( &meta->primaryIndex, sizeof( size_t ), 1, outputFile );
+                //fwrite( bufferA, 1, sizeB, outputFile );
+    
+                blockNumber++;
+            }
+        
             
             break;
     }
 
-    blockNumber++;
 
     free( bufferA );
     free( bufferB );
 
     fclose( inputFile  );
-    fclose( outputFile );
+//    fclose( outputFile );
     return 0;
 }

@@ -23,7 +23,7 @@ size_t RLE( const unsigned char *input,
         symbol = ( symbol_t )input[i];
         output[size] = symbol;
         size++;
-        printf( "element: %d\n", input[i] );
+        //printf( "element: %d ", input[i] );
 
         do {
             zeroRun += ( input[i] == 0 ) ? 1 : 0;
@@ -31,27 +31,30 @@ size_t RLE( const unsigned char *input,
         
         if( zeroRun > -1 ) {
             int mod = zeroRun % 2;
-            printf( "zeroRun: %d| ",  zeroRun );
-            printf( "mod: %d\n", mod );
+            //printf( "zeroRun: %d| ",  zeroRun );
+            //printf( "mod: %d\n", mod );
             output[size] = ( mod ) ? RUNB : RUNA;
             size++;
             while( zeroRun > 1 ) {
                 zeroRun = zeroRun / 2;
                 mod = zeroRun % 2;
-                printf( "zeroRun: %d| ",  zeroRun );
-                printf( "mod: %d\n", mod );
+                //printf( "zeroRun: %d| ",  zeroRun );
+                //printf( "mod: %d\n", mod );
                 output[size] = ( mod ) ? RUNB : RUNA;
                 size++;
             }
         }
     }
 
+    output[size] = 258;
+    size++;
+
     printf( "\n" );
     for( i = 0; i < size; i++ ) {
-        printf( "%d ", output[i] );
+        //printf( "%d ", output[i] ); THIS ONE
     }
     
-    printf( "\n\n" );
+    printf( "size: %d\n\n", size );
 
     return size;
 }
