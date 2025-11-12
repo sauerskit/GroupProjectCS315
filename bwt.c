@@ -58,7 +58,7 @@ size_t BWT( const unsigned char *input,
                size_t        len, 
                blockMeta     *res ) {
 
-    printf( "BWT\n" );
+    //printf( "BWT\n" );
 
     size_t size = 0;
 
@@ -124,3 +124,39 @@ size_t BWT( const unsigned char *input,
     return size;
 }
 
+size_t UnBWT(unsigned char *output,
+             unsigned char *input,
+             size_t len,
+             blockMeta *meta)
+{
+
+    //printf( "length: %zu\n", len );
+
+    int freq[256] = {0};
+    for (size_t i = 0; i < len; i++)
+        freq[input[i]]++;
+
+    int start[256];
+    int sum = 0;
+    for (int i = 0; i < 256; i++) {
+        start[i] = sum;
+        sum += freq[i];
+    }
+
+    int *lf = malloc(len * sizeof(int));
+    int occ[256] = {0};
+    for (size_t i = 0; i < len; i++) {
+        unsigned char c = input[i];
+        lf[i] = start[c] + occ[c];
+        occ[c]++;
+    }
+
+    size_t pos = meta->primaryIndex; // 0-based, do NOT subtract 1
+    for (size_t i = len; i-- > 0; ) {
+        output[i] = input[pos];
+        pos = lf[pos];
+    }
+
+    free(lf);
+    return len;
+}

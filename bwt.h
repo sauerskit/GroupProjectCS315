@@ -13,4 +13,9 @@ size_t BWT( const unsigned char *input,
                blockMeta     *res ); 
         // unsigned char = byte
 
+size_t UnBWT( unsigned char *output,
+            unsigned char *input, 
+            size_t        len, 
+            blockMeta     *res ); 
+
 #endif

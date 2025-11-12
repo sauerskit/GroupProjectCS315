@@ -5,73 +5,115 @@
 #include "huffman.h"
 
 // blockMeta struct
-// tableSize       table size (shocking)
-// runMagic         magic bit for encoding runa or runb first
-// huffman[259]        huffman table
-
-unsigned char intToByte( int *buffer ) {
+// primaryIndex    ( size_t )
+// tableSize       table size (shocking) ( size_t )
+// runMagic         magic bit for encoding runa or runb first ( int )
+// huffman[259]        huffman table ( int )
+unsigned char binToByte( int *buffer ) {
 
     unsigned char byteToAdd = 0;
 
     int exp = 1; //exponent ( powers of 2 ) 
     for( int k = 7; k >= 0; k-- ) {
-        //printf( " k = %d ", k );
         byteToAdd += buffer[k] * exp;
         exp = exp * 2;
-        //printf( " byte = %zu ", byteToAdd );
     }
 
     return byteToAdd;
 }
 
-int metaData( blockMeta *meta ) {
+int primaryIndex( size_t idx, FILE *outputFile ) {
 
+        
+    //printf( "primary index: \n" );
 
+    unsigned char bytes[3];
+
+    bytes[0] = ( idx >> 16 ) & 0xff;
+    bytes[1] = ( idx >> 8  ) & 0xff;
+    bytes[2] =   idx         & 0xff;
+
+    for( int i = 0; i < 3; i++ ) {
+        fputc( bytes[i], outputFile );
+        //printf( " %zu ", bytes[i] );
+    }
+
+    //printf( "\n" );
+    return 0;
+}
+
+int tableSizeMeta( size_t size, FILE *outputFile ) {
+
+    //printf( "huffman table size: \nsize: %d\n", size );
+
+    unsigned char byte = (unsigned char)size;
+    fputc( byte, outputFile );
+    //printf( " %zu ", byte );
+
+    return 0;
+}
+
+int huffmanMeta( int huffman[259], size_t size, FILE *outputFile ) {
+
+    //printf( "\nhuffman tree metadata\n" );
+
+    for( int i = 0; i < 259; i++ ) {
+        int found = 0;
+        for( size_t j = 0; ( j < size ); j++ ) {
+            if( i == huffman[j] ) {
+                unsigned char byte = (unsigned char)j + 1;
+                fputc( byte, outputFile );
+                //printf( "%zu ", byte );
+                found = 1;
+            } else if( ( j == size - 1 ) && ( !found ) ) {
+                fputc( 0x00, outputFile );
+                //printf( "%zu ", 0x00 );
+            }
+        }
+    }
+
+    //printf( "\n" );
+    return 0;
+}
+
+int metaData( blockMeta *meta, FILE *outputFile ) {
+
+    //printf( "\nAdding metadata\n" );
+
+    primaryIndex ( meta->primaryIndex, outputFile );
+    tableSizeMeta( meta->tableSize,    outputFile );
+    huffmanMeta  ( meta->huffman, meta->tableSize, outputFile );
+
+    
 
     return 1;
 }
 
-int write( symbol_t *input, size_t len, blockMeta *meta ) {
+int write( symbol_t *input, size_t len, blockMeta *meta, FILE *outputFile ) {
 
-    printf( "\nwrite start.\n" );
-
+    //printf( "\nwrite start.\n" );
     int *buffer = malloc( 300 * sizeof( int ) );
     int idx = 0;
 
-    FILE *outputFile = fopen( "output.zip", "ab" );
-    if( outputFile ) {
-        printf( "File output.zip opened for writing.\n" );
-    }
-
-    if( !outputFile ) {
-        perror( "fopen" );
-        exit( 1 );
-    }
-
-    fseek( outputFile, 0, SEEK_END );
-    long pos = ftell( outputFile );
-    printf( "File position before writing: %ld\n", pos );
 
     for( int i = 0; i < len; i++ ) {
         int j = 0;
         while( input[i] != meta->huffman[j] ) {
             //printf( "0" );
             buffer[idx] = 0;
-            //printf( "\nbuffer at %d: %d\n", idx, buffer[idx] );
             idx++;
             j++;
         }
         
         //printf( "1" );
         buffer[idx] = 1;
-        //printf( "\nbuffer at %d: %d\n", idx, buffer[idx] );
+        //break;
         idx++;
 
 
         while( idx > 7 ) {  // idx = 7 means 8 digits total ( 1 byte )
-            unsigned char byteToAdd = intToByte( buffer );
+            unsigned char byteToAdd = binToByte( buffer );
 
-            //printf( " %zu ", byteToAdd );
             fputc( byteToAdd, outputFile );
 
             for( int k = 8; k < idx; k++ ) {
@@ -89,57 +131,47 @@ int write( symbol_t *input, size_t len, blockMeta *meta ) {
             buffer[i] = 0;
         }
 
-        unsigned char lastByte = intToByte( buffer );
+        unsigned char lastByte = binToByte( buffer );
         fputc( lastByte, outputFile );
-        printf( "printing last byte\n" );
+        //printf( "printing last byte\n" );
     }
     
-    fclose( outputFile );
-
-    printf( "\nwrite finish.\n" );
+    //printf( "\nwrite finish.\n" );
     free( buffer );
 
-    printf( "\ntest\n" );
     return 0;
 }
 
 
 size_t Huffman( symbol_t *input,
                 unsigned char *output,
-               // const unsigned char *output2,
                 size_t len,
                 blockMeta *meta ) {
 
-    printf( "Huffman\n\n" );
+    //printf( "Huffman\n\n" );
 
     int temp1[259] = { 0 };
     int temp2[259] = { 0 };
-for( size_t i = 0; i < len; i++ ) {
-        //meta->huffman[input[i]] += 1;
+    for( size_t i = 0; i < len; i++ ) {
         temp1[input[i]] += 1;
     }
 
-    printf( "huffman table temp1\n" );
+    //printf( "huffman table temp1\n" );
         
     for( int i = 0; i < 259; i++ ) { //not 259 because we leave off endofblock char in encoding so it gets the last huffman code possible
-        printf( "%d ", temp1[i] );
+        //printf( "%d ", temp1[i] );
     }
-    printf( "\n" );
+    //printf( "\n" );
 
     int hufflen = 1;
 
     for( int i = 257; i >= 0; i-- ) { //not 258 because we leave off endofblock char in encoding so it gets the last huffman code possible
 
         if( temp1[i] > 0 ) {
-        //printf( "temp1[i]: %d ", temp1[i] );
             int j;
             for( j = 0; ( ( j < hufflen ) && ( temp2[j] >= temp1[i] ) ); j++ );
-            //printf( "j: %d\n", j );
-            //printf( "hufflen: %d\n", hufflen );
             if( temp2[j] < temp1[i] ) {
-            //    printf( "still good\n" );
                 for( int k = hufflen - 1; k >= j; k-- ) {
-             //       printf( "good %d ", k );
                     
                     temp2[k+1] = temp2[k];
                     meta->huffman[k+1] = meta->huffman[k];
@@ -153,20 +185,37 @@ for( size_t i = 0; i < len; i++ ) {
     
     meta->huffman[hufflen - 1] = 258;
 
-    printf( "\n" );
-    printf( "huffman table\n" );
+    //printf( "\n" );
+    //printf( "huffman table\n" );
     for( int i = 0; i < hufflen; i++ ) {
-        printf( "%d ", meta->huffman[i] );
+        //printf( "%d ", meta->huffman[i] );
     }
-    printf( "\n" );
+    //printf( "\n" );
 
-    printf( "writing huffman encoded data \n" );
+    meta->tableSize = hufflen;
 
-    write( input, len, meta );
+    //printf( "writing huffman encoded data \n" );
 
-    // for addison addition, re-code 0 character runs of length 8, 4, and 16, then huffman encode (second time) those along with patterns of binary 4 bits long.
+    
+    FILE *outputFile = fopen( "output.zip", "ab" );
+    if( outputFile ) {
+        //printf( "File output.zip opened for writing.\n" );
+    }
+
+    if( !outputFile ) {
+        perror( "fopen" );
+        exit( 1 );
+    }
+
+    fseek( outputFile, 0, SEEK_END );
+    long pos = ftell( outputFile );
+    //printf( "File position before writing: %ld\n", pos );
 
 
-    printf( "\n" );
+    metaData( meta, outputFile );
+    write( input, len, meta, outputFile );
+
+    fclose( outputFile );
+    //printf( "\n" );
     return 0;
 }

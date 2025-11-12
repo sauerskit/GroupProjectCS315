@@ -4,7 +4,8 @@ build:
 	gcc -c mtf.c -o mtf.o
 	gcc -c rle.c -o rle.o
 	gcc -c huffman.c -o huffman.o
-	gcc -Wall -Wextra main.o bwt.o mtf.o rle.o huffman.o -o compression
+	gcc -c unhuffman.c -o unhuffman.o
+	gcc -Wall -Wextra main.o bwt.o mtf.o rle.o huffman.o unhuffman.o -o compression
 	rm -f *.o
 
 clean:

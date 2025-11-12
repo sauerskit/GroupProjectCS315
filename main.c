@@ -6,6 +6,7 @@
 #include "mtf.h"
 #include "rle.h"
 #include "huffman.h"
+#include "unhuffman.h"
 
 #define BLOCK_SIZE ( 500 * 1024 ) // 300 kilobyte block sizes
 
@@ -25,15 +26,7 @@ int main( int argc, char *argv[] ) {
     }
 
     FILE *inputFile  = fopen( argv[1], "rb" );
-    //FILE *outputFile = fopen( "output.bwt", "wb" ); // .azip Addison ZIP
 
-    //if( !inputFile ) {
-        //perror( "fopen" );        TODO: CHANGE THIS
-        //return 1;
-    //}
-
-    // bufferA and bufferB so that I can reuse buffers for input/output after
-    // each transform
     unsigned char *bufferA = calloc( 1, BLOCK_SIZE );
 
     if( !bufferA ) {
@@ -72,7 +65,7 @@ int main( int argc, char *argv[] ) {
                                                     read );
 
                 size_t sizeA = BWT( bufferA, bufferB, read, meta );
-                printf( "Primary index: %zu\n", meta->primaryIndex );
+                //printf( "Primary index: %zu\n", meta->primaryIndex );
 
                 for( size_t i = 0; i < read; i++ ) {
                     //putchar( bufferB[i] );
@@ -86,10 +79,6 @@ int main( int argc, char *argv[] ) {
                 size_t sizeC = RLE( bufferA, symBuffer, sizeB );
 
                 size_t sizeD = Huffman( symBuffer, bufferB, sizeC, meta );
-                //size_t sizeD = Huffman( symBuffer, bufferB, bufferA, sizeC, meta ); //!!! bufferA HAS OUTPUT 
-
-                //fwrite( &meta->primaryIndex, sizeof( size_t ), 1, outputFile );
-                //fwrite( bufferA, 1, sizeB, outputFile );
     
                 blockNumber++;
             }
@@ -98,39 +87,34 @@ int main( int argc, char *argv[] ) {
             
         case 2:
             
-            printf( "Decompressing!\n" );
+            printf( "Decompressing!\n\n" );
 
+            FILE *outputFile = fopen( "output.zip", "ab" );
+            while( 1 ) {
 
-            while( ( read = fread( bufferA, 1, BLOCK_SIZE, inputFile ) ) > 0 ) {
-                printf( "processing block %zu with %zu bytes\n", 
-                                                    blockNumber, 
-                                                    read );
-
-                //size_t sizeD = Huffman( symBuffer, bufferB, sizeC, meta );
-                //size_t sizeC = RLE( bufferA, symBuffer, sizeB );
-
-                //size_t sizeA = BWT( bufferA, bufferB, read, meta );
-
-                //size_t sizeB = MTF( bufferB, bufferA, sizeA );
-                //printf( "Primary index: %zu\n", meta->primaryIndex );
-
-                //size_t sizeD = Huffman( symBuffer, bufferB, bufferA, sizeC, meta ); //!!! bufferA HAS OUTPUT 
-
-                //fwrite( &meta->primaryIndex, sizeof( size_t ), 1, outputFile );
-                //fwrite( bufferA, 1, sizeB, outputFile );
+                size_t sizeA = Unhuffman( bufferA, symBuffer, meta, inputFile );
+                if( sizeA == -1 ) {
+                    printf( "\nEnd of File!\n" );
+                    break;
+                    //return 0;
+                }
+                 
+                size_t sizeB = UnRLE( bufferA, symBuffer, sizeA );
+                size_t sizeC = UnMTF( bufferB, bufferA, sizeB );
+                size_t sizeD = UnBWT( bufferA, bufferB, sizeC, meta );
     
-                blockNumber++;
+                fwrite( bufferA, 1, sizeD, outputFile );
+
             }
-        
-            
+            fclose( outputFile );
             break;
     }
+        
 
 
     free( bufferA );
     free( bufferB );
 
     fclose( inputFile  );
-//    fclose( outputFile );
     return 0;
 }
